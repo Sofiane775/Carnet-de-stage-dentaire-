@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Panorama">
+<title>Panorama — Carnet de stage clinique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #11151C;
+  --panel:   #1A212B;
+  --panel2:  #212A36;
+  --line:    #2C3744;
+  --text:    #E7EEF3;
+  --text2:   #8FA1B0;
+  --text3:   #5A6B7A;
+  --cyan:    #5FD3E8;
+  --cyan-dim:rgba(95,211,232,.14);
+  --mint:    #4ADE9E;
+  --mint-bg: rgba(74,222,158,.12);
+  --amber:   #E8A33D;
+  --amber-bg:rgba(232,163,61,.12);
+  --red:     #E8615F;
+  --red-bg:  rgba(232,97,95,.12);
+
+  --radius:    10px;
+  --radius-sm: 8px;
+  --tab-h:     64px;
+  --safe-top:  env(safe-area-inset-top, 0px);
+  --safe-bot:  env(safe-area-inset-bottom, 0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'IBM Plex Sans',sans-serif;color:var(--text);display:flex;flex-direction:column;max-width:430px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+
+/* ===== TOP HEADER ===== */
+#topnav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(17,21,28,.92);backdrop-filter:blur(14px);
+  padding:calc(14px + var(--safe-top)) 20px 14px;
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;justify-content:space-between;}
+.brand-mark{display:flex;align-items:center;gap:11px;}
+.brand-icon{
+  width:34px;height:34px;border-radius:9px;background:var(--cyan-dim);
+  border:1px solid rgba(95,211,232,.3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--cyan);
+}
+.brand-icon svg{width:18px;height:18px;stroke-width:1.6;}
+.brand-title{font-size:17px;font-weight:700;letter-spacing:.06em;}
+.brand-sub{font-size:10.5px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+.settings-btn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);flex-shrink:0;transition:all .15s;
+}
+.settings-btn svg{width:16px;height:16px;stroke-width:1.8;}
+.settings-btn:active{border-color:var(--cyan);color:var(--cyan);}
+
+/* ===== MAIN ===== */
+#app-main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-h) + var(--safe-bot) + 90px);}
+.page{display:none;}
+.page.active{display:block;}
+.section{padding:18px 20px 0;}
+.section:last-child{padding-bottom:18px;}
+
+/* ===== HEADINGS ===== */
+.page-title{font-size:21px;font-weight:700;letter-spacing:-.01em;margin-bottom:2px;}
+.page-sub{font-size:12.5px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
+.sec-label{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin:22px 0 12px;
+}
+.sec-label-text{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text2);
+  display:flex;align-items:center;gap:8px;font-weight:600;
+}
+.sec-label-text::before{
+  content:'';display:inline-block;width:12px;height:1px;background:var(--cyan);
+}
+.sec-link{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);cursor:pointer;font-weight:600;}
+
+/* ===== STATS GRID ===== */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:26px;letter-spacing:-.01em;line-height:1;color:var(--cyan);}
+.stat-num.mint{color:var(--mint);}
+.stat-num.amber{color:var(--amber);}
+.stat-lbl{font-size:11px;color:var(--text2);font-weight:500;margin-top:5px;letter-spacing:.02em;}
+
+/* ===== QUOTA ROW ===== */
+.quota-row{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:13px 15px;margin-bottom:9px;
+}
+.quota-top{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.quota-code{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  border-radius:5px;padding:3px 6px;letter-spacing:.04em;flex-shrink:0;
+  border:1px solid currentColor;
+}
+.quota-name{flex:1;font-size:13px;font-weight:600;}
+.quota-edit{
+  width:26px;height:26px;border-radius:7px;border:1px solid var(--line);
+  background:var(--panel2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text3);flex-shrink:0;
+}
+.quota-edit svg{width:12px;height:12px;stroke-width:2.2;}
+.quota-track{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;}
+.quota-fill{height:100%;border-radius:3px;background:var(--cyan);transition:width .5s ease;}
+.quota-fill.done{background:var(--mint);}
+.quota-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;color:var(--text3);font-family:'IBM Plex Mono',monospace;}
+
+/* ===== ACT ROW (journal) ===== */
+.act-row{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 0;border-bottom:1px solid var(--line);
+  cursor:pointer;
+}
+.act-row:last-child{border-bottom:none;}
+.act-dot{
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11px;
+  border:1px solid currentColor;
+}
+.act-main{flex:1;min-width:0;}
+.act-title{font-size:13.5px;font-weight:600;}
+.act-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+.act-status{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;
+  flex-shrink:0;
+}
+.act-status.valide{background:var(--mint-bg);color:var(--mint);}
+.act-status.attente{background:var(--amber-bg);color:var(--amber);}
+
+.day-divider{display:flex;align-items:center;gap:10px;margin:18px 0 4px;}
+.day-divider:first-child{margin-top:0;}
+.day-label{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text);white-space:nowrap;
+}
+.day-line{flex:1;height:1px;background:var(--line);}
+.day-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text3);}
+
+/* ===== SEARCH & FILTERS ===== */
+.search-wrap{
+  display:flex;align-items:center;gap:9px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:11px 14px;margin-bottom:12px;
+}
+.search-wrap svg{width:16px;height:16px;stroke:var(--text3);stroke-width:2;flex-shrink:0;}
+.search-wrap input{border:none;background:none;padding:0;font-size:14px;flex:1;color:var(--text);font-family:'IBM Plex Sans',sans-serif;outline:none;}
+.search-wrap input::placeholder{color:var(--text3);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;overflow-x:auto;padding-bottom:2px;}
+.chip{
+  font-size:11px;font-weight:600;letter-spacing:.03em;
+  padding:7px 13px;border-radius:14px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.chip.active{background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan);}
+
+/* ===== ODONTOGRAM ===== */
+.odonto-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 10px;margin-bottom:14px;
+  background-image:radial-gradient(circle at 50% 0%, rgba(95,211,232,.06), transparent 60%);
+}
+.odonto-orient{display:flex;justify-content:space-between;padding:0 6px 10px;font-size:10px;letter-spacing:.18em;color:var(--text3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.odonto-arch-label{text-align:center;font-size:10px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin:8px 0 6px;}
+.odonto-row{display:flex;justify-content:center;gap:3px;}
+.odonto-gap{width:8px;flex-shrink:0;}
+.tooth{
+  width:25px;height:36px;border:1.5px solid var(--line);border-radius:5px;
+  background:var(--panel2);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);
+  position:relative;cursor:pointer;transition:all .15s;padding-bottom:3px;flex-shrink:0;
+}
+.tooth:active{transform:scale(.93);}
+.tooth.has-acts{border-color:var(--cyan);box-shadow:0 0 8px rgba(95,211,232,.3);background:rgba(95,211,232,.07);color:var(--text);}
+.tooth-badges{position:absolute;top:3px;left:0;right:0;display:flex;justify-content:center;gap:2px;}
+.tooth-badge-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ===== LEGEND ===== */
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+/* ===== TOOTH HISTORY (in modal) ===== */
+.tooth-act-row{
+  display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);
+}
+.tooth-act-row:last-child{border-bottom:none;}
+
+/* ===== STATS BARS ===== */
+.stat-bar-row{margin-bottom:14px;}
+.stat-bar-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.stat-bar-name{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.stat-bar-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--text2);}
+.stat-bar-track{height:7px;background:var(--panel2);border-radius:4px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:4px;}
+
+.trend-chart{
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 10px 6px;height:150px;
+  display:flex;align-items:flex-end;gap:8px;
+  background:var(--panel);
+}
+.trend-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
+.trend-bar{width:14px;border-radius:3px 3px 0 0;min-height:2px;background:var(--cyan);}
+.trend-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.05em;}
+.trend-val{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text2);}
+
+/* ===== EMPTY STATE ===== */
+.empty{text-align:center;padding:50px 20px;}
+.empty-mark{
+  width:52px;height:52px;border:1.5px dashed var(--line);border-radius:50%;
+  margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:var(--text3);
+}
+.empty-mark svg{width:22px;height:22px;stroke-width:1.6;}
+.empty h3{font-size:14px;font-weight:700;margin-bottom:5px;}
+.empty p{font-size:12px;color:var(--text2);line-height:1.7;max-width:240px;margin:0 auto;}
+
+/* ===== TAB BAR ===== */
+#tab-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:rgba(17,21,28,.92);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  display:flex;z-index:100;
+  padding:8px 8px calc(8px + var(--safe-bot));
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:6px 4px;cursor:pointer;color:var(--text3);
+}
+.tab svg{width:19px;height:19px;stroke-width:1.8;}
+.tab-lbl{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.tab.active{color:var(--cyan);}
+
+/* ===== FAB ===== */
+.fab{
+  position:fixed;bottom:calc(var(--tab-h) + var(--safe-bot) + 16px);
+  right:calc(50% - 215px + 18px);
+  width:54px;height:54px;border-radius:50%;
+  background:var(--cyan);color:var(--bg);border:none;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(95,211,232,.35);cursor:pointer;z-index:90;
+  transition:transform .15s;
+}
+.fab:active{transform:scale(.93);}
+.fab svg{width:24px;height:24px;stroke-width:2.4;}
+@media(min-width:430px){.fab{right:24px;}}
+
+/* ===== TYPE GRID (act type picker) ===== */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.type-opt{
+  display:flex;align-items:center;gap:8px;padding:11px 10px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;transition:all .15s;
+}
+.type-opt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.type-opt-lbl{font-size:11.5px;font-weight:600;line-height:1.3;}
+.type-opt.active{background:rgba(95,211,232,.08);}
+
+/* ===== STATUS SWITCH ===== */
+.status-switch{display:flex;gap:8px;margin-bottom:16px;}
+.status-btn{
+  flex:1;text-align:center;padding:11px 8px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--line);background:var(--panel2);
+  font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  cursor:pointer;color:var(--text2);transition:all .15s;
+}
+.status-btn.active.valide{background:var(--mint-bg);border-color:var(--mint);color:var(--mint);}
+.status-btn.active.attente{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+
+/* ===== FORM ===== */
+.form-group{margin-bottom:14px;}
+.form-label{
+  font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text2);margin-bottom:6px;display:block;
+}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+input,select,textarea{
+  width:100%;font-family:'IBM Plex Sans',sans-serif;
+  font-size:14px;color:var(--text);background:var(--panel2);
+  border:1.5px solid var(--line);border-radius:var(--radius-sm);
+  padding:11px 13px;-webkit-appearance:none;outline:none;
+  transition:border-color .15s;
+}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);}
+textarea{resize:none;line-height:1.6;}
+select{cursor:pointer;}
+
+/* ===== MODAL ===== */
+.modal-backdrop{position:fixed;inset:0;background:rgba(7,9,13,.6);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-backdrop.open{opacity:1;pointer-events:all;}
+.modal-sheet{
+  background:var(--panel);border-radius:16px 16px 0 0;border:1px solid var(--line);border-bottom:none;
+  width:100%;max-width:430px;margin:0 auto;
+  padding:0 0 calc(22px + var(--safe-bot));
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.modal-backdrop.open .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:12px auto 14px;}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;padding:0 18px 16px;}
+.modal-title{font-size:15px;font-weight:700;letter-spacing:.02em;}
+.modal-close{width:30px;height:30px;border-radius:50%;background:var(--panel2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.modal-close svg{width:15px;height:15px;stroke-width:2.2;}
+.modal-body{padding:0 18px;}
+.form-actions{display:flex;gap:10px;margin-top:6px;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  font-size:13px;font-weight:700;letter-spacing:.04em;
+  padding:13px 20px;border-radius:var(--radius-sm);border:1.5px solid var(--line);cursor:pointer;
+  transition:all .15s;font-family:'IBM Plex Sans',sans-serif;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--cyan);color:var(--bg);border-color:var(--cyan);flex:2;}
+.btn-ghost{background:var(--panel2);color:var(--text2);flex:1;}
+.btn-danger{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:calc(var(--tab-h) + var(--safe-bot) + 16px);left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--panel);border:1px solid var(--line);color:var(--text);
+  font-size:12.5px;font-weight:600;
+  padding:11px 22px;border-radius:var(--radius-sm);opacity:0;transition:all .25s;
+  pointer-events:none;z-index:300;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== DESKTOP / LARGE SCREENS ===== */
+@media(min-width:700px){
+  body{max-width:100%;}
+  #topnav{padding:18px 32px;}
+  #tab-bar{
+    position:sticky;bottom:auto;top:0;left:0;transform:none;order:-1;
+    width:100%;max-width:100%;height:auto;
+    border-top:none;border-bottom:1px solid var(--line);
+    justify-content:flex-start;gap:8px;padding:10px 32px;z-index:99;
+  }
+  .tab{flex:0 0 auto;flex-direction:row;gap:8px;padding:6px 14px 6px 6px;}
+  #app-main{padding-bottom:32px;}
+  .section{padding:24px 32px 0;}
+
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+  #journal-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px;align-items:start;}
+  #journal-list .day-divider, #journal-list .empty{grid-column:1/-1;}
+  #home-quotas{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;}
+  #home-quotas .quota-row{margin-bottom:0;}
+  .tooth{width:32px;height:46px;}
+
+  .modal-backdrop{align-items:center;justify-content:center;}
+  .modal-sheet{border-radius:16px;max-width:480px;transform:translateY(20px) scale(.97);}
+  .modal-backdrop.open .modal-sheet{transform:translateY(0) scale(1);}
+
+  .fab{right:32px;bottom:32px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP HEADER ===== -->
+<div id="topnav">
+  <div class="brand">
+    <div class="brand-mark">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">PANORAMA</div>
+        <div class="brand-sub" id="topbar-date"></div>
+      </div>
+    </div>
+    <div class="settings-btn" onclick="openSheet('modal-info')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </div>
+  </div>
+</div>
+
+<div id="app-main">
+
+<!-- ===== PAGE: ACCUEIL ===== -->
+<div class="page active" id="page-home">
+  <div class="section">
+    <div class="page-title">Carnet de stage</div>
+    <div class="page-sub">Suivi des actes cliniques et progression vers les quotas de validation</div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-lbl">Actes au total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num mint" id="stat-valides">0</div>
+        <div class="stat-lbl">Validés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num amber" id="stat-attente">0</div>
+        <div class="stat-lbl">En attente</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-month">0</div>
+        <div class="stat-lbl">Ce mois-ci</div>
+      </div>
+    </div>
+
+    <div class="sec-label">
+      <span class="sec-label-text">Quotas de validation</span>
+      <span class="sec-link" onclick="goPage('schema')">Schéma</span>
+    </div>
+    <div id="home-quotas"></div>
+
+    <div class="sec-label">
+      <span class="sec-label-text">Derniers actes</span>
+      <span class="sec-link" onclick="goPage('journal')">Journal</span>
+    </div>
+    <div id="home-recent"></div>
+  </div>
+</div>
+
+<!-- ===== PAGE: SCHÉMA ===== -->
+<div class="page" id="page-schema">
+  <div class="section">
+    <div class="page-title">Schéma dentaire</div>
+    <div class="page-sub">Notation FDI · touchez une dent pour voir son historique ou ajouter un acte</div>
+
+    <div class="odonto-card">
+      <div class="odonto-orient"><span>← Droite (patient)</span><span>Gauche (patient) →</span></div>
+      <div class="odonto-arch-label">Maxillaire</div>
+      <div class="odonto-row" id="odonto-upper"></div>
+      <div class="odonto-arch-label" style="margin-top:14px;">Mandibule</div>
+      <div class="odonto-row" id="odonto-lower"></div>
+
+      <div class="legend" id="odonto-legend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: JOURNAL ===== -->
+<div class="page" id="page-journal">
+  <div class="section">
+    <div class="page-title">Journal des actes</div>
+    <div class="page-sub" id="journal-count">0 acte enregistré</div>
+
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="journal-search" placeholder="Dent, encadrant, notes..." oninput="renderJournal()">
+    </div>
+    <div class="chips" id="journal-chips"></div>
+
+    <div id="journal-list" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- ===== PAGE: STATS ===== -->
+<div class="page" id="page-stats">
+  <div class="section">
+    <div class="page-title">Statistiques</div>
+    <div class="page-sub">Répartition des actes et évolution mensuelle</div>
+
+    <div class="sec-label" style="margin-top:0;">
+      <span class="sec-label-text">Répartition par type d'acte</span>
+    </div>
+    <div id="stats-breakdown"></div>
+
+    <div class="sec-label">
+      <span class="sec-label-text">Actes par mois (6 derniers mois)</span>
+    </div>
+    <div class="trend-chart" id="trend-chart"></div>
+  </div>
+</div>
+
+</div><!-- /app-main -->
+
+<!-- ===== TAB BAR ===== -->
+<div id="tab-bar">
+  <div class="tab active" id="tab-home" onclick="goPage('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span class="tab-lbl">Accueil</span>
+  </div>
+  <div class="tab" id="tab-schema" onclick="goPage('schema')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3-2-7-5.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 4.5-4 8-7 10-.7.5-1.3.5-2 0a3 3 0 0 1-2-1.5c-.3-.7-1.2-.7-1.5 0A3 3 0 0 1 12 21z"/></svg>
+    <span class="tab-lbl">Schéma</span>
+  </div>
+  <div class="tab" id="tab-journal" onclick="goPage('journal')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span class="tab-lbl">Journal</span>
+  </div>
+  <div class="tab" id="tab-stats" onclick="goPage('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span class="tab-lbl">Stats</span>
+  </div>
+</div>
+
+<!-- ===== FAB ===== -->
+<button class="fab" onclick="openActModal()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- ===== MODAL: ADD/EDIT ACT ===== -->
+<div class="modal-backdrop" id="modal-act" onclick="closeSheet('modal-act')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-hd">
+      <div class="modal-title" id="act-modal-title">Nouvel acte</div>
+      <button class="modal-close" onclick="closeSheet('modal-act')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">Type d'acte</div>
+        <div class="type-grid" id="type-grid"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <div class="form-label">Dent (FDI)</div>
+          <select id="f-tooth"><option value="">Aucune / général</option></select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Date</div>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <div class="form-label">Encadrant</div>
+          <input type="text" id="f-supervisor" placeholder="Dr. ...">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Durée (min)</div>
+          <input type="number" inputmode="numeric" id="f-duration" placeholder="30">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Statut</div>
+        <div class="status-switch">
+          <div class="status-btn attente active" id="status-attente" onclick="setActStatus('attente')">En attente</div>
+          <div class="status-btn valide" id="status-valide" onclick="setActStatus('valide')">Validé</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Notes / réflexion clinique</div>
+        <textarea id="f-notes" rows="3" placeholder="Déroulement, difficultés, points à retravailler..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeSheet('modal-act')">Annuler</button>
+        <button class="btn btn-primary" onclick="saveAct()">Enregistrer</button>
+      </div>
+      <div class="form-actions" id="act-delete-row" style="display:none;margin-top:10px;">
+        <button class="btn btn-danger" style="flex:1;" onclick="deleteAct()">Supprimer cet acte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: QUOTA EDIT ===== -->
+<div class="modal-backdrop" id="modal-quota" onclick="closeSheet('modal-quota')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-hd">
+      <div class="modal-title" id="quota-modal-title">Objectif</div>
+      <button class="modal-close" onclick="closeSheet('modal-quota')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">Nombre d'actes requis</div>
+        <input type="number" inputmode="numeric" id="f-quota-target" placeholder="20">
+        <div style="font-size:11.5px;color:var(--text2);margin-top:10px;line-height:1.7;">
+          Mettez à 0 pour retirer cet objectif de la liste. Adaptez selon les exigences de votre faculté.
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveQuota()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: TOOTH HISTORY ===== -->
+<div class="modal-backdrop" id="modal-tooth" onclick="closeSheet('modal-tooth')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-hd">
+      <div class="modal-title" id="tooth-modal-title">Dent</div>
+      <button class="modal-close" onclick="closeSheet('modal-tooth')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="tooth-history"></div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button class="btn btn-primary" style="flex:1;" id="tooth-add-btn">Ajouter un acte sur cette dent</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: INFO ===== -->
+<div class="modal-backdrop" id="modal-info" onclick="closeSheet('modal-info')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-hd">
+      <div class="modal-title">À propos</div>
+      <button class="modal-close" onclick="closeSheet('modal-info')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="font-size:13px;color:var(--text2);line-height:1.8;padding-bottom:10px;">
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">Panorama</strong> est un carnet de stage clinique personnel. Toutes les données restent stockées localement sur cet appareil (aucun envoi sur internet).</p>
+      <p style="margin-bottom:12px;">La notation des dents suit le système <strong style="color:var(--text);">FDI</strong> (32 dents, 11–48). Les objectifs de quotas par type d'acte sont des valeurs par défaut modifiables — ajustez-les selon les exigences de votre faculté.</p>
+      <p>Touchez une dent dans l'onglet Schéma pour consulter son historique ou y ajouter un acte directement.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATA ===== */
+const ACT_TYPES = [
+  {id:'examen', label:'Examen clinique / bilan', code:'EXA', color:'#8FA1B0'},
+  {id:'detartrage', label:'Détartrage / prophylaxie', code:'DET', color:'#4ADE9E'},
+  {id:'restauration', label:'Restauration (composite/amalgame)', code:'RES', color:'#5FD3E8'},
+  {id:'endo', label:'Endodontie', code:'ENDO', color:'#B79CF0'},
+  {id:'extraction', label:'Extraction', code:'EXT', color:'#E8615F'},
+  {id:'prothese', label:'Prothèse', code:'PRO', color:'#E8A33D'},
+  {id:'paro', label:'Parodontologie', code:'PARO', color:'#7FE0C4'},
+  {id:'chirurgie', label:'Chirurgie orale', code:'CHIR', color:'#F0789C'},
+  {id:'pedo', label:'Pédodontie', code:'PEDO', color:'#F5C26B'},
+  {id:'anesthesie', label:'Anesthésie locale', code:'ANES', color:'#9FB4FF'},
+  {id:'autre', label:'Autre acte', code:'AUT', color:'#8FA1B0'}
+];
+const DEFAULT_QUOTAS = {
+  examen:20, detartrage:15, restauration:20, endo:8, extraction:10,
+  prothese:6, paro:8, chirurgie:5, pedo:8, anesthesie:15, autre:0
+};
+const TOOTH_TYPE_NAMES = {1:'Incisive centrale',2:'Incisive latérale',3:'Canine',4:'1ère prémolaire',5:'2e prémolaire',6:'1ère molaire',7:'2e molaire',8:'3e molaire (dent de sagesse)'};
+const QUADRANT_NAMES = {1:'maxillaire droit',2:'maxillaire gauche',3:'mandibulaire gauche',4:'mandibulaire droit'};
+const UPPER_TEETH = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+const LOWER_TEETH = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+
+function actTypeById(id){ return ACT_TYPES.find(a=>a.id===id) || ACT_TYPES[ACT_TYPES.length-1]; }
+function toothLabel(fdi){
+  const q=Math.floor(fdi/10), n=fdi%10;
+  return TOOTH_TYPE_NAMES[n] + ' — ' + QUADRANT_NAMES[q] + ' (' + fdi + ')';
+}
+
+/* ===== STATE ===== */
+let acts = JSON.parse(localStorage.getItem('pano_acts')||'[]');
+let quotas = JSON.parse(localStorage.getItem('pano_quotas')||'null') || Object.assign({}, DEFAULT_QUOTAS);
+let journalFilter='all', editActId=null, selectedActType='examen', selectedStatus='attente', quotaEditId=null, toothModalFDI=null;
+
+function save(){ localStorage.setItem('pano_acts', JSON.stringify(acts)); }
+function saveQuotas(){ localStorage.setItem('pano_quotas', JSON.stringify(quotas)); }
+
+/* ===== UTILS ===== */
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function monthKey(iso){ return iso.slice(0,7); }
+function fmtDate(iso){
+  const d=new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+}
+function fmtDayLabel(iso){
+  const d = new Date(iso+'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yest = new Date(today); yest.setDate(today.getDate()-1);
+  if(d.getTime()===today.getTime()) return "AUJOURD'HUI";
+  if(d.getTime()===yest.getTime()) return 'HIER';
+  return d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).toUpperCase().replace('.','');
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+function openSheet(id){ document.getElementById(id).classList.add('open'); }
+
+/* ===== NAVIGATION ===== */
+function goPage(page){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+page).classList.add('active');
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('app-main').scrollTop=0;
+  renderAll();
+}
+function renderAll(){
+  renderHome(); renderOdontogram(); renderJournal(); renderStats();
+}
+
+/* ===== HOME ===== */
+function renderHome(){
+  document.getElementById('stat-total').textContent=acts.length;
+  document.getElementById('stat-valides').textContent=acts.filter(a=>a.status==='valide').length;
+  document.getElementById('stat-attente').textContent=acts.filter(a=>a.status==='attente').length;
+  const curMonth=todayISO().slice(0,7);
+  document.getElementById('stat-month').textContent=acts.filter(a=>monthKey(a.date)===curMonth).length;
+
+  const counts={};
+  acts.forEach(a=>{ counts[a.actTypeId]=(counts[a.actTypeId]||0)+1; });
+  const activeQuotas=ACT_TYPES.filter(t=>(quotas[t.id]||0)>0);
+  const quotasEl=document.getElementById('home-quotas');
+  if(!activeQuotas.length){
+    quotasEl.innerHTML='<div class="empty" style="padding:24px 10px;">'
+      +'<div class="empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>'
+      +'<h3>Aucun objectif défini</h3>'
+      +'<p>Tous les quotas sont à zéro. Définissez-les depuis l\'onglet Stats ou via les types d\'actes.</p>'
+      +'</div>';
+  } else {
+    quotasEl.innerHTML=activeQuotas.map(function(t){
+      const done=counts[t.id]||0;
+      const target=quotas[t.id];
+      const pct=Math.min(100, Math.round((done/target)*100));
+      return '<div class="quota-row">'
+        +'<div class="quota-top">'
+        +'<div class="quota-code" style="color:'+t.color+';">'+t.code+'</div>'
+        +'<div class="quota-name">'+t.label+'</div>'
+        +'<div class="quota-edit" onclick="openQuotaModal(\''+t.id+'\')">'
+        +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+        +'</div></div>'
+        +'<div class="quota-track"><div class="quota-fill '+(pct>=100?'done':'')+'" style="width:'+pct+'%;background:'+(pct>=100?'':t.color)+';"></div></div>'
+        +'<div class="quota-foot"><span>'+done+' / '+target+'</span><span>'+pct+'%</span></div>'
+        +'</div>';
+    }).join('');
+  }
+
+  const recent=acts.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).slice(0,5);
+  const recEl=document.getElementById('home-recent');
+  if(!recent.length){
+    recEl.innerHTML='<div class="empty">'
+      +'<div class="empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>'
+      +'<h3>Aucun acte enregistré</h3>'
+      +'<p>Touchez le bouton + pour enregistrer votre premier acte clinique.</p>'
+      +'</div>';
+  } else {
+    recEl.innerHTML=recent.map(renderActRow).join('');
+  }
+}
+
+/* ===== ACT ROW ===== */
+function renderActRow(a){
+  const t=actTypeById(a.actTypeId);
+  let sub=fmtDate(a.date);
+  if(a.supervisor) sub+=' · '+a.supervisor;
+  if(a.duration) sub+=' · '+a.duration+' min';
+  return '<div class="act-row" onclick="openActModal('+a.id+')">'
+    +'<div class="act-dot" style="color:'+t.color+';">'+t.code+'</div>'
+    +'<div class="act-main">'
+    +'<div class="act-title">'+t.label+(a.tooth?' · Dent '+a.tooth:'')+'</div>'
+    +'<div class="act-sub">'+sub+'</div>'
+    +'</div>'
+    +'<div class="act-status '+a.status+'">'+(a.status==='valide'?'Validé':'En attente')+'</div>'
+    +'</div>';
+}
+
+/* ===== ODONTOGRAM ===== */
+function renderTooth(fdi){
+  const toothActs=acts.filter(function(a){return a.tooth===fdi;});
+  const seen={}; const types=[];
+  toothActs.forEach(function(a){ if(!seen[a.actTypeId]){ seen[a.actTypeId]=true; types.push(a.actTypeId); } });
+  const badges=types.slice(0,4).map(function(id){return '<span class="tooth-badge-dot" style="background:'+actTypeById(id).color+';"></span>';}).join('');
+  return '<div class="tooth '+(toothActs.length?'has-acts':'')+'" onclick="openToothModal('+fdi+')">'
+    +'<div class="tooth-badges">'+badges+'</div>'
+    +fdi
+    +'</div>';
+}
+function renderOdontogram(){
+  const upperHalf1=UPPER_TEETH.slice(0,8), upperHalf2=UPPER_TEETH.slice(8);
+  const lowerHalf1=LOWER_TEETH.slice(0,8), lowerHalf2=LOWER_TEETH.slice(8);
+  document.getElementById('odonto-upper').innerHTML=
+    upperHalf1.map(renderTooth).join('') + '<div class="odonto-gap"></div>' + upperHalf2.map(renderTooth).join('');
+  document.getElementById('odonto-lower').innerHTML=
+    lowerHalf1.map(renderTooth).join('') + '<div class="odonto-gap"></div>' + lowerHalf2.map(renderTooth).join('');
+
+  document.getElementById('odonto-legend').innerHTML=ACT_TYPES.map(function(t){
+    return '<div class="legend-item"><span class="legend-dot" style="background:'+t.color+';"></span>'+t.code+' — '+t.label+'</div>';
+  }).join('');
+}
+function openToothModal(fdi){
+  toothModalFDI=fdi;
+  document.getElementById('tooth-modal-title').textContent='Dent '+fdi+' — '+toothLabel(fdi);
+  const toothActs=acts.filter(function(a){return a.tooth===fdi;}).sort(function(a,b){return b.createdAt-a.createdAt;});
+  const histEl=document.getElementById('tooth-history');
+  if(!toothActs.length){
+    histEl.innerHTML='<div class="empty" style="padding:24px 10px;"><p>Aucun acte enregistré sur cette dent.</p></div>';
+  } else {
+    histEl.innerHTML=toothActs.map(function(a){
+      const t=actTypeById(a.actTypeId);
+      return '<div class="tooth-act-row">'
+        +'<div class="act-dot" style="color:'+t.color+';width:36px;height:36px;">'+t.code+'</div>'
+        +'<div class="act-main">'
+        +'<div class="act-title">'+t.label+'</div>'
+        +'<div class="act-sub">'+fmtDate(a.date)+(a.supervisor?' · '+a.supervisor:'')+'</div>'
+        +'</div>'
+        +'<div class="act-status '+a.status+'">'+(a.status==='valide'?'Validé':'En attente')+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  document.getElementById('tooth-add-btn').onclick=function(){
+    closeSheet('modal-tooth');
+    setTimeout(function(){ openActModal(null, fdi); }, 250);
+  };
+  openSheet('modal-tooth');
+}
+
+/* ===== JOURNAL ===== */
+function renderJournalChips(){
+  const chipsEl=document.getElementById('journal-chips');
+  let html='<div class="chip active" data-f="all" onclick="setJournalFilter(\'all\')">Tous</div>';
+  ACT_TYPES.forEach(function(t){
+    html+='<div class="chip" data-f="'+t.id+'" onclick="setJournalFilter(\''+t.id+'\')">'+t.code+'</div>';
+  });
+  chipsEl.innerHTML=html;
+}
+function setJournalFilter(f){
+  journalFilter=f;
+  document.querySelectorAll('#journal-chips [data-f]').forEach(function(c){ c.classList.toggle('active', c.dataset.f===f); });
+  renderJournal();
+}
+function renderJournal(){
+  const search=(document.getElementById('journal-search').value||'').toLowerCase();
+  let list=acts.filter(function(a){
+    const mf=journalFilter==='all' || a.actTypeId===journalFilter;
+    const ms=!search ||
+      (a.supervisor||'').toLowerCase().indexOf(search)>-1 ||
+      (a.notes||'').toLowerCase().indexOf(search)>-1 ||
+      (a.tooth?String(a.tooth):'').indexOf(search)>-1 ||
+      actTypeById(a.actTypeId).label.toLowerCase().indexOf(search)>-1;
+    return mf&&ms;
+  });
+  list=list.slice().sort(function(a,b){ return b.date.localeCompare(a.date) || b.createdAt-a.createdAt; });
+
+  document.getElementById('journal-count').textContent=acts.length+(acts.length===1?' acte enregistré':' actes enregistrés');
+
+  const listEl=document.getElementById('journal-list');
+  if(!list.length){
+    listEl.innerHTML='<div class="empty">'
+      +'<div class="empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>'
+      +'<h3>Aucun acte</h3>'
+      +'<p>'+(acts.length?'Essayez une autre recherche ou un autre filtre.':'Touchez le bouton + pour ajouter votre premier acte.')+'</p>'
+      +'</div>';
+    return;
+  }
+  const groups={};
+  list.forEach(function(a){ (groups[a.date]=groups[a.date]||[]).push(a); });
+  const dates=Object.keys(groups).sort(function(a,b){return b.localeCompare(a);});
+  listEl.innerHTML=dates.map(function(date){
+    const items=groups[date];
+    return '<div class="day-divider">'
+      +'<div class="day-label">'+fmtDayLabel(date)+'</div>'
+      +'<div class="day-line"></div>'
+      +'<div class="day-count">'+items.length+' acte'+(items.length>1?'s':'')+'</div>'
+      +'</div>'
+      + items.map(renderActRow).join('');
+  }).join('');
+}
+
+/* ===== STATS ===== */
+function renderStats(){
+  const counts={};
+  acts.forEach(function(a){ counts[a.actTypeId]=(counts[a.actTypeId]||0)+1; });
+  const total=acts.length;
+  const breakdownEl=document.getElementById('stats-breakdown');
+  const present=ACT_TYPES.filter(function(t){return counts[t.id]>0;}).sort(function(a,b){return (counts[b.id]||0)-(counts[a.id]||0);});
+  if(!present.length){
+    breakdownEl.innerHTML='<div class="empty" style="padding:24px 10px;"><p>La répartition apparaîtra ici dès qu\'un acte sera enregistré.</p></div>';
+  } else {
+    breakdownEl.innerHTML=present.map(function(t){
+      const c=counts[t.id]||0;
+      const pct=total>0?Math.round((c/total)*100):0;
+      return '<div class="stat-bar-row">'
+        +'<div class="stat-bar-hd">'
+        +'<div class="stat-bar-name"><span class="quota-code" style="color:'+t.color+';">'+t.code+'</span>'+t.label+'</div>'
+        +'<div class="stat-bar-val">'+c+'</div>'
+        +'</div>'
+        +'<div class="stat-bar-track"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+t.color+';"></div></div>'
+        +'</div>';
+    }).join('');
+  }
+
+  const months=[];
+  const now=new Date();
+  for(let i=5;i>=0;i--){
+    months.push(new Date(now.getFullYear(), now.getMonth()-i, 1));
+  }
+  const monthCounts=months.map(function(d){
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    return acts.filter(function(a){return monthKey(a.date)===key;}).length;
+  });
+  const maxVal=Math.max.apply(null, monthCounts.concat([1]));
+  document.getElementById('trend-chart').innerHTML=months.map(function(d,i){
+    const h=Math.max((monthCounts[i]/maxVal)*100, monthCounts[i]>0?6:2);
+    return '<div class="trend-col">'
+      +'<div class="trend-val">'+monthCounts[i]+'</div>'
+      +'<div class="trend-bar" style="height:'+h+'%;'+(monthCounts[i]===0?'background:var(--line);':'')+'"></div>'
+      +'<div class="trend-lbl">'+d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase().replace('.','')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ===== ADD/EDIT ACT ===== */
+function populateToothSelect(selected){
+  const sel=document.getElementById('f-tooth');
+  let html='<option value="">Aucune / général</option>';
+  UPPER_TEETH.concat(LOWER_TEETH).forEach(function(fdi){
+    html+='<option value="'+fdi+'" '+(selected===fdi?'selected':'')+'>'+fdi+' — '+toothLabel(fdi)+'</option>';
+  });
+  sel.innerHTML=html;
+}
+function renderTypeGrid(){
+  document.getElementById('type-grid').innerHTML=ACT_TYPES.map(function(t){
+    return '<div class="type-opt '+(t.id===selectedActType?'active':'')+'" data-type="'+t.id+'" onclick="selectActType(\''+t.id+'\')">'
+      +'<span class="type-opt-dot" style="background:'+t.color+';"></span>'
+      +'<span class="type-opt-lbl">'+t.label+'</span>'
+      +'</div>';
+  }).join('');
+}
+function selectActType(id){
+  selectedActType=id;
+  document.querySelectorAll('#type-grid .type-opt').forEach(function(el){ el.classList.toggle('active', el.dataset.type===id); });
+}
+function setActStatus(status){
+  selectedStatus=status;
+  document.getElementById('status-attente').classList.toggle('active', status==='attente');
+  document.getElementById('status-valide').classList.toggle('active', status==='valide');
+}
+function openActModal(id, presetTooth){
+  editActId = id || null;
+  renderTypeGrid();
+  populateToothSelect(presetTooth);
+  if(editActId){
+    const a=acts.find(function(x){return x.id===editActId;}); if(!a) return;
+    document.getElementById('act-modal-title').textContent="Modifier l'acte";
+    selectedActType=a.actTypeId; renderTypeGrid();
+    populateToothSelect(a.tooth);
+    document.getElementById('f-tooth').value=a.tooth||'';
+    document.getElementById('f-date').value=a.date;
+    document.getElementById('f-supervisor').value=a.supervisor||'';
+    document.getElementById('f-duration').value=a.duration||'';
+    document.getElementById('f-notes').value=a.notes||'';
+    setActStatus(a.status);
+    document.getElementById('act-delete-row').style.display='block';
+  } else {
+    document.getElementById('act-modal-title').textContent='Nouvel acte';
+    selectedActType='examen'; renderTypeGrid();
+    document.getElementById('f-tooth').value=presetTooth||'';
+    document.getElementById('f-date').value=todayISO();
+    document.getElementById('f-supervisor').value='';
+    document.getElementById('f-duration').value='';
+    document.getElementById('f-notes').value='';
+    setActStatus('attente');
+    document.getElementById('act-delete-row').style.display='none';
+  }
+  openSheet('modal-act');
+}
+function saveAct(){
+  const toothVal=document.getElementById('f-tooth').value;
+  const obj={
+    id: editActId || Date.now(),
+    actTypeId: selectedActType,
+    tooth: toothVal?parseInt(toothVal):null,
+    date: document.getElementById('f-date').value || todayISO(),
+    supervisor: document.getElementById('f-supervisor').value.trim(),
+    duration: document.getElementById('f-duration').value?parseInt(document.getElementById('f-duration').value):null,
+    status: selectedStatus,
+    notes: document.getElementById('f-notes').value.trim(),
+    createdAt: editActId ? ((acts.find(function(x){return x.id===editActId;})||{}).createdAt || Date.now()) : Date.now()
+  };
+  if(editActId){
+    const i=acts.findIndex(function(x){return x.id===editActId;});
+    if(i>-1) acts[i]=obj;
+  } else {
+    acts.push(obj);
+  }
+  save();
+  closeSheet('modal-act');
+  toast(editActId?'✓ Acte modifié':'✓ Acte enregistré');
+  renderAll();
+}
+function deleteAct(){
+  if(!confirm('Supprimer cet acte ?')) return;
+  acts=acts.filter(function(a){return a.id!==editActId;});
+  save();
+  closeSheet('modal-act');
+  toast('Acte supprimé');
+  renderAll();
+}
+
+/* ===== QUOTAS ===== */
+function openQuotaModal(actTypeId){
+  quotaEditId=actTypeId;
+  const t=actTypeById(actTypeId);
+  document.getElementById('quota-modal-title').textContent=t.label;
+  document.getElementById('f-quota-target').value=quotas[actTypeId]||0;
+  openSheet('modal-quota');
+}
+function saveQuota(){
+  let val=parseInt(document.getElementById('f-quota-target').value);
+  if(isNaN(val)||val<0) val=0;
+  quotas[quotaEditId]=val;
+  saveQuotas();
+  closeSheet('modal-quota');
+  toast('✓ Objectif mis à jour');
+  renderAll();
+}
+
+/* ===== INIT ===== */
+document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('f-date').value=todayISO();
+renderJournalChips();
+renderTypeGrid();
+populateToothSelect();
+renderAll();
+</script>
+</body>
+</html>
